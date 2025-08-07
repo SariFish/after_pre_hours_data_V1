@@ -127,6 +127,33 @@ fig.update_layout(
     height=650,
     margin=dict(t=70, r=20, l=30, b=30)
 )
+import streamlit as st
+import plotly.graph_objs as go
+
+# Assume daily_df is ready as in your code
+
+tab1, tab2, tab3 = st.tabs(["Regular", "Pre-market", "After-hours"])
+
+with tab1:
+    fig_regular = go.Figure()
+    fig_regular.add_trace(go.Scatter(x=daily_df['Date'], y=daily_df['Regular High'], name="High", mode='lines+markers', line=dict(color='royalblue')))
+    fig_regular.add_trace(go.Scatter(x=daily_df['Date'], y=daily_df['Regular Low'], name="Low", mode='lines+markers', line=dict(color='lightblue')))
+    fig_regular.update_layout(title="Regular Session", xaxis_title="Date", yaxis_title="Price", legend_title="")
+    st.plotly_chart(fig_regular, use_container_width=True)
+
+with tab2:
+    fig_pre = go.Figure()
+    fig_pre.add_trace(go.Scatter(x=daily_df['Date'], y=daily_df['Pre High'], name="High", mode='lines+markers', line=dict(color='seagreen')))
+    fig_pre.add_trace(go.Scatter(x=daily_df['Date'], y=daily_df['Pre Low'], name="Low", mode='lines+markers', line=dict(color='lightgreen')))
+    fig_pre.update_layout(title="Pre-market Session", xaxis_title="Date", yaxis_title="Price", legend_title="")
+    st.plotly_chart(fig_pre, use_container_width=True)
+
+with tab3:
+    fig_after = go.Figure()
+    fig_after.add_trace(go.Scatter(x=daily_df['Date'], y=daily_df['After High'], name="High", mode='lines+markers', line=dict(color='firebrick')))
+    fig_after.add_trace(go.Scatter(x=daily_df['Date'], y=daily_df['After Low'], name="Low", mode='lines+markers', line=dict(color='salmon')))
+    fig_after.update_layout(title="After-hours Session", xaxis_title="Date", yaxis_title="Price", legend_title="")
+    st.plotly_chart(fig_after, use_container_width=True)
 
 st.plotly_chart(fig, use_container_width=True)
 
@@ -134,3 +161,5 @@ st.plotly_chart(fig, use_container_width=True)
 st.subheader("Daily Values Table (August)")
 # Optional: format numbers, drop NA if needed
 st.dataframe(daily_df.style.format("{:.2f}", na_rep="—"))
+
+

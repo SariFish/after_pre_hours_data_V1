@@ -70,63 +70,63 @@ for date, group in df.groupby('date'):
 
 daily_df = pd.DataFrame(results).sort_values('Date')
 
-def safe_fmt(val):
-    return f"{val:.2f}" if val is not None else "N/A"
+# def safe_fmt(val):
+#     return f"{val:.2f}" if val is not None else "N/A"
     
-hover_texts = [
-    f"Date: {row.Date}<br>"
-    f"Regular High: {safe_fmt(row['Regular High'])}<br>"
-    f"Regular Low: {safe_fmt(row['Regular Low'])}<br>"
-    f"Pre High: {safe_fmt(row['Pre High'])}<br>"
-    f"Pre Low: {safe_fmt(row['Pre Low'])}<br>"
-    f"After High: {safe_fmt(row['After High'])}<br>"
-    f"After Low: {safe_fmt(row['After Low'])}"
-    for _, row in daily_df.iterrows()
-]
+# hover_texts = [
+#     f"Date: {row.Date}<br>"
+#     f"Regular High: {safe_fmt(row['Regular High'])}<br>"
+#     f"Regular Low: {safe_fmt(row['Regular Low'])}<br>"
+#     f"Pre High: {safe_fmt(row['Pre High'])}<br>"
+#     f"Pre Low: {safe_fmt(row['Pre Low'])}<br>"
+#     f"After High: {safe_fmt(row['After High'])}<br>"
+#     f"After Low: {safe_fmt(row['After Low'])}"
+#     for _, row in daily_df.iterrows()
+# ]
 
-fig = go.Figure()
-# High/Low - Regular
-fig.add_trace(go.Scatter(
-    x=daily_df['Date'], y=daily_df['Regular High'],
-    name="High (Regular)", mode='lines+markers',
-    hovertext=hover_texts, hoverinfo="text"
-))
-fig.add_trace(go.Scatter(
-    x=daily_df['Date'], y=daily_df['Regular Low'],
-    name="Low (Regular)", mode='lines+markers',
-    hovertext=hover_texts, hoverinfo="text"
-))
-# High/Low - After-hours
-fig.add_trace(go.Scatter(
-    x=daily_df['Date'], y=daily_df['After High'],
-    name="High (After-hours)", mode='lines+markers',
-    hovertext=hover_texts, hoverinfo="text"
-))
-fig.add_trace(go.Scatter(
-    x=daily_df['Date'], y=daily_df['After Low'],
-    name="Low (After-hours)", mode='lines+markers',
-    hovertext=hover_texts, hoverinfo="text"
-))
-# High/Low - Pre-market
-fig.add_trace(go.Scatter(
-    x=daily_df['Date'], y=daily_df['Pre High'],
-    name="High (Pre-market)", mode='lines+markers',
-    hovertext=hover_texts, hoverinfo="text"
-))
-fig.add_trace(go.Scatter(
-    x=daily_df['Date'], y=daily_df['Pre Low'],
-    name="Low (Pre-market)", mode='lines+markers',
-    hovertext=hover_texts, hoverinfo="text"
-))
+# fig = go.Figure()
+# # High/Low - Regular
+# fig.add_trace(go.Scatter(
+#     x=daily_df['Date'], y=daily_df['Regular High'],
+#     name="High (Regular)", mode='lines+markers',
+#     hovertext=hover_texts, hoverinfo="text"
+# ))
+# fig.add_trace(go.Scatter(
+#     x=daily_df['Date'], y=daily_df['Regular Low'],
+#     name="Low (Regular)", mode='lines+markers',
+#     hovertext=hover_texts, hoverinfo="text"
+# ))
+# # High/Low - After-hours
+# fig.add_trace(go.Scatter(
+#     x=daily_df['Date'], y=daily_df['After High'],
+#     name="High (After-hours)", mode='lines+markers',
+#     hovertext=hover_texts, hoverinfo="text"
+# ))
+# fig.add_trace(go.Scatter(
+#     x=daily_df['Date'], y=daily_df['After Low'],
+#     name="Low (After-hours)", mode='lines+markers',
+#     hovertext=hover_texts, hoverinfo="text"
+# ))
+# # High/Low - Pre-market
+# fig.add_trace(go.Scatter(
+#     x=daily_df['Date'], y=daily_df['Pre High'],
+#     name="High (Pre-market)", mode='lines+markers',
+#     hovertext=hover_texts, hoverinfo="text"
+# ))
+# fig.add_trace(go.Scatter(
+#     x=daily_df['Date'], y=daily_df['Pre Low'],
+#     name="Low (Pre-market)", mode='lines+markers',
+#     hovertext=hover_texts, hoverinfo="text"
+# ))
 
-fig.update_layout(
-    title=f"{symbol} - Daily High/Low (August {year})",
-    xaxis_title="Date",
-    yaxis_title="Price",
-    legend_title="Session",
-    height=650,
-    margin=dict(t=70, r=20, l=30, b=30)
-)
+# fig.update_layout(
+#     title=f"{symbol} - Daily High/Low (August {year})",
+#     xaxis_title="Date",
+#     yaxis_title="Price",
+#     legend_title="Session",
+#     height=650,
+#     margin=dict(t=70, r=20, l=30, b=30)
+# )
 import streamlit as st
 import plotly.graph_objs as go
 

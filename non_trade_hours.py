@@ -70,15 +70,17 @@ for date, group in df.groupby('date'):
 
 daily_df = pd.DataFrame(results).sort_values('Date')
 
-# Custom hover text with all values for each date
+def safe_fmt(val):
+    return f"{val:.2f}" if val is not None else "N/A"
+    
 hover_texts = [
     f"Date: {row.Date}<br>"
-    f"Regular High: {row['Regular High']:.2f if row['Regular High'] is not None else 'N/A'}<br>"
-    f"Regular Low: {row['Regular Low']:.2f if row['Regular Low'] is not None else 'N/A'}<br>"
-    f"Pre High: {row['Pre High']:.2f if row['Pre High'] is not None else 'N/A'}<br>"
-    f"Pre Low: {row['Pre Low']:.2f if row['Pre Low'] is not None else 'N/A'}<br>"
-    f"After High: {row['After High']:.2f if row['After High'] is not None else 'N/A'}<br>"
-    f"After Low: {row['After Low']:.2f if row['After Low'] is not None else 'N/A'}"
+    f"Regular High: {safe_fmt(row['Regular High'])}<br>"
+    f"Regular Low: {safe_fmt(row['Regular Low'])}<br>"
+    f"Pre High: {safe_fmt(row['Pre High'])}<br>"
+    f"Pre Low: {safe_fmt(row['Pre Low'])}<br>"
+    f"After High: {safe_fmt(row['After High'])}<br>"
+    f"After Low: {safe_fmt(row['After Low'])}"
     for _, row in daily_df.iterrows()
 ]
 

@@ -155,7 +155,7 @@ with tab3:
     fig_after.update_layout(title="After-hours Session", xaxis_title="Date", yaxis_title="Price", legend_title="")
     st.plotly_chart(fig_after, use_container_width=True)
 
-st.plotly_chart(fig, use_container_width=True)
+# st.plotly_chart(fig, use_container_width=True)
 
 # Daily table
 st.subheader("Daily Values Table (August)")

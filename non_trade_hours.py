@@ -5,11 +5,11 @@ import plotly.graph_objs as go
 from datetime import datetime
 from calendar import monthrange
 import pytz
-import yfinance as yf
+import numpy as np
 
 API_KEY = "uPE6xgvnK5v3vruLdXnWmpZDxSpYTOvf"
 
-st.title("Daily Stock Highs and Lows (Pre-market, Regular, After-hours) + Open/Close")
+st.title("Daily Stock Highs and Lows (Regular, Pre-market, After-hours)")
 
 with st.form("user_inputs"):
     symbol = st.text_input("Enter a stock symbol:", "AAPL").upper()
@@ -23,14 +23,6 @@ if submit:
     end_date = f"{year}-{str(month).zfill(2)}-{monthrange(year, month)[1]}"
     st.write(f"Fetching minute-level data for {symbol} ({start_date} to {end_date})...")
 
-    # 1. Get open/close per day from Yahoo (free)
-    hist_yf = yf.download(symbol, start=start_date, end=(datetime.strptime(end_date, "%Y-%m-%d") + pd.Timedelta(days=1)).strftime("%Y-%m-%d"))
-    hist_yf = hist_yf.reset_index()
-    hist_yf['Date'] = hist_yf['Date'].dt.strftime("%Y-%m-%d")
-    open_close = hist_yf[['Date', 'Open', 'Close']].copy()
-    open_close.set_index('Date', inplace=True)
-
-    # 2. Get all high/low (per session) from Polygon
     url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/1/minute/{start_date}/{end_date}"
     params = {
         "adjusted": "true",
@@ -45,6 +37,7 @@ if submit:
         st.error("No data found. Please check the symbol or try later.")
         st.stop()
 
+    # Convert timestamp to NY time (America/New_York)
     eastern = pytz.timezone("America/New_York")
     df = pd.DataFrame(data["results"])
     df['timestamp'] = pd.to_datetime(df['t'], unit='ms', utc=True).dt.tz_convert(eastern)
@@ -71,46 +64,39 @@ if submit:
 
     results = []
     for date, group in df.groupby('date'):
-        date_str = pd.Timestamp(date).strftime("%Y-%m-%d")
-        result = {'Date': date_str}
-        for session in ['pre', 'regular', 'after']:
+        result = {'Date': date}
+
+        # Regular session - open/close from Polygon
+        regular = group[group['session'] == 'regular']
+        if not regular.empty:
+            regular_sorted = regular.sort_values('timestamp')
+            result["Open"] = regular_sorted['o'].iloc[0]
+            result["Close"] = regular_sorted['c'].iloc[-1]
+        else:
+            result["Open"] = np.nan
+            result["Close"] = np.nan
+
+        # Regular/Pre/After high/low as before
+        for session in ['regular', 'pre', 'after']:
             sess_group = group[group['session'] == session]
             if not sess_group.empty:
                 result[f"{session.capitalize()} High"] = sess_group['h'].max()
                 result[f"{session.capitalize()} Low"] = sess_group['l'].min()
             else:
-                result[f"{session.capitalize()} High"] = None
-                result[f"{session.capitalize()} Low"] = None
-        # merge open/close from yfinance
-        if date_str in open_close.index:
-            result['Open'] = open_close.loc[date_str, 'Open']
-            result['Close'] = open_close.loc[date_str, 'Close']
-        else:
-            result['Open'] = None
-            result['Close'] = None
+                result[f"{session.capitalize()} High"] = np.nan
+                result[f"{session.capitalize()} Low"] = np.nan
         results.append(result)
 
     daily_df = pd.DataFrame(results).sort_values('Date')
-    daily_df['Date'] = daily_df['Date'].astype(str)
+    daily_df['Date'] = daily_df['Date'].astype(str)  # For pretty display
 
-    # Table columns in order: Pre, Regular (with open/close), After
-    columns_to_format = [
-        'Pre High', 'Pre Low',
-        'Regular High', 'Regular Low', 'Open', 'Close',
-        'After High', 'After Low'
-    ]
+    # Columns order for table: Pre, Regular + open/close, After
+    columns_to_format = ['Pre High', 'Pre Low', 'Regular High', 'Regular Low', 'Open', 'Close', 'After High', 'After Low']
     ordered_cols = ['Date'] + columns_to_format
 
-    tab1, tab2, tab3 = st.tabs(["Pre-market", "Regular", "After-hours"])
+    tab1, tab2, tab3 = st.tabs(["Regular", "Pre-market", "After-hours"])
 
     with tab1:
-        fig_pre = go.Figure()
-        fig_pre.add_trace(go.Scatter(x=daily_df['Date'], y=daily_df['Pre High'], name="High", mode='lines+markers', line=dict(color='seagreen')))
-        fig_pre.add_trace(go.Scatter(x=daily_df['Date'], y=daily_df['Pre Low'], name="Low", mode='lines+markers', line=dict(color='lightgreen')))
-        fig_pre.update_layout(title="Pre-market Session", xaxis_title="Date", yaxis_title="Price", legend_title="")
-        st.plotly_chart(fig_pre, use_container_width=True)
-
-    with tab2:
         fig_regular = go.Figure()
         fig_regular.add_trace(go.Scatter(x=daily_df['Date'], y=daily_df['Regular High'], name="High", mode='lines+markers', line=dict(color='royalblue')))
         fig_regular.add_trace(go.Scatter(x=daily_df['Date'], y=daily_df['Regular Low'], name="Low", mode='lines+markers', line=dict(color='lightblue')))
@@ -120,12 +106,23 @@ if submit:
         fig_regular.update_layout(title="Regular Session", xaxis_title="Date", yaxis_title="Price", legend_title="")
         st.plotly_chart(fig_regular, use_container_width=True)
 
+    with tab2:
+        fig_pre = go.Figure()
+        fig_pre.add_trace(go.Scatter(x=daily_df['Date'], y=daily_df['Pre High'], name="High", mode='lines+markers', line=dict(color='seagreen')))
+        fig_pre.add_trace(go.Scatter(x=daily_df['Date'], y=daily_df['Pre Low'], name="Low", mode='lines+markers', line=dict(color='lightgreen')))
+        fig_pre.update_layout(title="Pre-market Session", xaxis_title="Date", yaxis_title="Price", legend_title="")
+        st.plotly_chart(fig_pre, use_container_width=True)
+
     with tab3:
         fig_after = go.Figure()
         fig_after.add_trace(go.Scatter(x=daily_df['Date'], y=daily_df['After High'], name="High", mode='lines+markers', line=dict(color='firebrick')))
         fig_after.add_trace(go.Scatter(x=daily_df['Date'], y=daily_df['After Low'], name="Low", mode='lines+markers', line=dict(color='salmon')))
         fig_after.update_layout(title="After-hours Session", xaxis_title="Date", yaxis_title="Price", legend_title="")
         st.plotly_chart(fig_after, use_container_width=True)
+
+    # Convert all to numeric for safe formatting
+    for col in columns_to_format:
+        daily_df[col] = pd.to_numeric(daily_df[col], errors='coerce')
 
     st.subheader(f"Daily Values Table ({datetime(year, month, 1).strftime('%B %Y')})")
     st.dataframe(

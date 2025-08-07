@@ -94,13 +94,16 @@ if submit:
     columns_to_format = ['Pre High', 'Pre Low', 'Regular High', 'Regular Low', 'Open', 'Close', 'After High', 'After Low']
     ordered_cols = ['Date'] + columns_to_format
 
+    # Make sure all numeric columns are really float (fix for .style bug)
+    for col in columns_to_format:
+        daily_df[col] = pd.to_numeric(daily_df[col], errors='coerce')
+
     tab1, tab2, tab3 = st.tabs(["Regular", "Pre-market", "After-hours"])
 
     with tab1:
         fig_regular = go.Figure()
         fig_regular.add_trace(go.Scatter(x=daily_df['Date'], y=daily_df['Regular High'], name="High", mode='lines+markers', line=dict(color='royalblue')))
         fig_regular.add_trace(go.Scatter(x=daily_df['Date'], y=daily_df['Regular Low'], name="Low", mode='lines+markers', line=dict(color='lightblue')))
-        # Add Open/Close as dots
         fig_regular.add_trace(go.Scatter(x=daily_df['Date'], y=daily_df['Open'], name="Open", mode='markers', marker=dict(symbol='diamond', size=10, color='orange')))
         fig_regular.add_trace(go.Scatter(x=daily_df['Date'], y=daily_df['Close'], name="Close", mode='markers', marker=dict(symbol='circle', size=10, color='black')))
         fig_regular.update_layout(title="Regular Session", xaxis_title="Date", yaxis_title="Price", legend_title="")
@@ -119,10 +122,6 @@ if submit:
         fig_after.add_trace(go.Scatter(x=daily_df['Date'], y=daily_df['After Low'], name="Low", mode='lines+markers', line=dict(color='salmon')))
         fig_after.update_layout(title="After-hours Session", xaxis_title="Date", yaxis_title="Price", legend_title="")
         st.plotly_chart(fig_after, use_container_width=True)
-
-    # Convert all to numeric for safe formatting
-    for col in columns_to_format:
-        daily_df[col] = pd.to_numeric(daily_df[col], errors='coerce')
 
     st.subheader(f"Daily Values Table ({datetime(year, month, 1).strftime('%B %Y')})")
     st.dataframe(

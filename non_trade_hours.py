@@ -5,6 +5,8 @@ import plotly.graph_objs as go
 from datetime import datetime
 from calendar import monthrange
 
+import pytz
+
 API_KEY = "uPE6xgvnK5v3vruLdXnWmpZDxSpYTOvf"
 
 st.title("Daily Stock Highs and Lows (Regular, Pre-market, After-hours)")
@@ -35,8 +37,10 @@ if submit:
         st.error("No data found. Please check the symbol or try later.")
         st.stop()
 
+    # Convert timestamp to NY time (America/New_York)
+    eastern = pytz.timezone("America/New_York")
     df = pd.DataFrame(data["results"])
-    df['timestamp'] = pd.to_datetime(df['t'], unit='ms')
+    df['timestamp'] = pd.to_datetime(df['t'], unit='ms', utc=True).dt.tz_convert(eastern)
     df['date'] = df['timestamp'].dt.date
     df['hour'] = df['timestamp'].dt.hour
     df['minute'] = df['timestamp'].dt.minute
@@ -74,7 +78,6 @@ if submit:
     daily_df = pd.DataFrame(results).sort_values('Date')
     daily_df['Date'] = daily_df['Date'].astype(str)  # For pretty display
 
-    # Columns to format (not Date)
     columns_to_format = ['Regular High', 'Regular Low', 'Pre High', 'Pre Low', 'After High', 'After Low']
     ordered_cols = ['Date'] + columns_to_format
 

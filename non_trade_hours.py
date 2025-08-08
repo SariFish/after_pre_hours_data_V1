@@ -124,9 +124,29 @@ if submit:
         st.plotly_chart(fig_after, use_container_width=True)
 
     st.subheader(f"Daily Values Table ({datetime(year, month, 1).strftime('%B %Y')})")
+
+    # Calculate change from after-hours low to same-day close
+    daily_df['After Low - Close'] = daily_df['After Low'] - daily_df['Close']
+
+# Calculate change from pre-market low to previous day's close
+    daily_df['Prev Close'] = daily_df['Close'].shift(1)
+    daily_df['Pre Low - Prev Close'] = daily_df['Pre Low'] - daily_df['Prev Close']
+
+# Add these columns to the table display
+    extra_cols = ['After Low - Close', 'Pre Low - Prev Close']
+    final_cols = ordered_cols + extra_cols
+
+    st.subheader(f"Daily Values Table ({datetime(year, month, 1).strftime('%B %Y')})")
     st.dataframe(
-        daily_df[ordered_cols].style.format(
-            {col: "{:.2f}" for col in columns_to_format}, na_rep="—"
-        ),
+        daily_df[final_cols].style.format(
+        {col: "{:.2f}" for col in columns_to_format + extra_cols}, na_rep="—"
+    ),
         use_container_width=True
-    )
+)
+
+    # st.dataframe(
+    #     daily_df[ordered_cols].style.format(
+    #         {col: "{:.2f}" for col in columns_to_format}, na_rep="—"
+    #     ),
+    #     use_container_width=True
+    # )

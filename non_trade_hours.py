@@ -125,15 +125,15 @@ if submit:
 
     st.subheader(f"Daily Values Table ({datetime(year, month, 1).strftime('%B %Y')})")
 
-    # Calculate change from after-hours low to same-day close
-    daily_df['After Low - Close'] = daily_df['After Low'] - daily_df['Close']
+  # Calculate percent change from after-hours low to same-day close
+    daily_df['After Low Change (%)'] = ((daily_df['After Low'] - daily_df['Close']) / daily_df['Close']) * 100
 
-# Calculate change from pre-market low to previous day's close
+# Calculate percent change from pre-market low to previous day's close
     daily_df['Prev Close'] = daily_df['Close'].shift(1)
-    daily_df['Pre Low - Prev Close'] = daily_df['Pre Low'] - daily_df['Prev Close']
+    daily_df['Pre Low Change (%)'] = ((daily_df['Pre Low'] - daily_df['Prev Close']) / daily_df['Prev Close']) * 100
 
 # Add these columns to the table display
-    extra_cols = ['After Low - Close', 'Pre Low - Prev Close']
+    extra_cols = ['After Low Change (%)', 'Pre Low Change (%)']
     final_cols = ordered_cols + extra_cols
 
     st.subheader(f"Daily Values Table ({datetime(year, month, 1).strftime('%B %Y')})")
@@ -143,10 +143,3 @@ if submit:
     ),
         use_container_width=True
 )
-
-    # st.dataframe(
-    #     daily_df[ordered_cols].style.format(
-    #         {col: "{:.2f}" for col in columns_to_format}, na_rep="—"
-    #     ),
-    #     use_container_width=True
-    # )
